@@ -2,30 +2,38 @@ import pytest
 from main import BooksCollector
 
 
+@pytest.fixture
+def collector():
+    return BooksCollector()
+
+
 class TestBooksCollector:
 
-    def test_add_new_book_add_two_books(self):
-        collector = BooksCollector()
-
+    def test_add_new_book_add_two_books(self, collector):
         collector.add_new_book('Гордость и предубеждение')
         collector.add_new_book('Мастер и Маргарита')
 
-        assert len(collector.get_books_genre()) == 2
+        assert collector.get_books_genre() == {
+            'Гордость и предубеждение': '',
+            'Мастер и Маргарита': ''
+        }
 
     @pytest.mark.parametrize('name', [
         '',
         'a' * 41
     ])
-    def test_add_new_book_invalid_name(self, name):
-        collector = BooksCollector()
-
+    def test_add_new_book_invalid_name(self, collector, name):
         collector.add_new_book(name)
 
         assert collector.get_books_genre() == {}
 
-    def test_set_book_genre(self):
-        collector = BooksCollector()
+    def test_set_book_genre(self, collector):
+        collector.add_new_book('Гарри Поттер')
+        collector.set_book_genre('Гарри Поттер', 'Фантастика')
 
+        assert collector.get_book_genre('Гарри Поттер') == 'Фантастика'
+
+    def test_get_book_genre(self, collector):
         collector.add_new_book('Гарри Поттер')
         collector.set_book_genre('Гарри Поттер', 'Фантастика')
 
@@ -33,72 +41,71 @@ class TestBooksCollector:
 
     @pytest.mark.parametrize('genre', [
         'Фантастика',
-        'Комедии',
-        'Мультфильмы'
+        'Мультфильмы',
+        'Детективы'
     ])
-    def test_get_books_with_specific_genre(self, genre):
-        collector = BooksCollector()
-
+    def test_get_books_with_specific_genre(self, collector, genre):
         collector.add_new_book('Книга')
         collector.set_book_genre('Книга', genre)
+        collector.add_new_book('Другая книга')
+        collector.set_book_genre('Другая книга', 'Ужасы')
 
         assert collector.get_books_with_specific_genre(genre) == ['Книга']
 
-    def test_get_books_genre(self):
-        collector = BooksCollector()
-
-        collector.add_new_book('Книга')
-        collector.set_book_genre('Книга', 'Детективы')
+    def test_get_books_genre(self, collector):
+        collector.add_new_book('Гарри Поттер')
+        collector.set_book_genre('Гарри Поттер', 'Фантастика')
+        collector.add_new_book('Оно')
+        collector.set_book_genre('Оно', 'Ужасы')
 
         assert collector.get_books_genre() == {
-            'Книга': 'Детективы'
+            'Гарри Поттер': 'Фантастика',
+            'Оно': 'Ужасы'
         }
 
-    def test_get_books_for_children(self):
-        collector = BooksCollector()
+    def test_get_books_for_children(self, collector):
+        collector.add_new_book('Гарри Поттер')
+        collector.set_book_genre('Гарри Поттер', 'Фантастика')
+        collector.add_new_book('Оно')
+        collector.set_book_genre('Оно', 'Ужасы')
+        collector.add_new_book('Чемодан')
+        collector.set_book_genre('Чемодан', 'Комедии')
+        collector.add_new_book('Маугли')
+        collector.set_book_genre('Маугли', 'Мультфильмы')
 
-        collector.add_new_book('Фантастика для детей')
-        collector.add_new_book('Детектив для взрослых')
-        collector.set_book_genre('Фантастика для детей', 'Фантастика')
-        collector.set_book_genre('Детектив для взрослых', 'Детективы')
+        assert collector.get_books_for_children() == [
+            'Гарри Поттер',
+            'Чемодан',
+            'Маугли'
+        ]
 
-        assert collector.get_books_for_children() == ['Фантастика для детей']
+    def test_add_book_in_favorites(self, collector):
+        collector.add_new_book('Гарри Поттер')
+        collector.add_book_in_favorites('Гарри Поттер')
 
-    def test_add_book_in_favorites(self):
-        collector = BooksCollector()
+        assert collector.get_list_of_favorites_books() == ['Гарри Поттер']
 
-        collector.add_new_book('Любимая книга')
-        collector.add_book_in_favorites('Любимая книга')
+    def test_add_book_in_favorites_duplicate(self, collector):
+        collector.add_new_book('Гарри Поттер')
+        collector.add_book_in_favorites('Гарри Поттер')
+        collector.add_book_in_favorites('Гарри Поттер')
 
-        assert collector.get_list_of_favorites_books() == ['Любимая книга']
+        assert collector.get_list_of_favorites_books() == ['Гарри Поттер']
 
-    def test_add_book_in_favorites_duplicate(self):
-        collector = BooksCollector()
-
-        collector.add_new_book('Любимая книга')
-        collector.add_book_in_favorites('Любимая книга')
-        collector.add_book_in_favorites('Любимая книга')
-
-        assert collector.get_list_of_favorites_books() == ['Любимая книга']
-
-    def test_delete_book_from_favorites(self):
-        collector = BooksCollector()
-
-        collector.add_new_book('Любимая книга')
-        collector.add_book_in_favorites('Любимая книга')
-        collector.delete_book_from_favorites('Любимая книга')
+    def test_delete_book_from_favorites(self, collector):
+        collector.add_new_book('Гарри Поттер')
+        collector.add_book_in_favorites('Гарри Поттер')
+        collector.delete_book_from_favorites('Гарри Поттер')
 
         assert collector.get_list_of_favorites_books() == []
 
-    def test_get_list_of_favorites_books(self):
-        collector = BooksCollector()
-
-        collector.add_new_book('Книга 1')
-        collector.add_new_book('Книга 2')
-        collector.add_book_in_favorites('Книга 1')
-        collector.add_book_in_favorites('Книга 2')
+    def test_get_list_of_favorites_books(self, collector):
+        collector.add_new_book('Гарри Поттер')
+        collector.add_new_book('Убийство в Восточном экспрессе')
+        collector.add_book_in_favorites('Гарри Поттер')
+        collector.add_book_in_favorites('Убийство в Восточном экспрессе')
 
         assert collector.get_list_of_favorites_books() == [
-            'Книга 1',
-            'Книга 2'
+            'Гарри Поттер',
+            'Убийство в Восточном экспрессе'
         ]
