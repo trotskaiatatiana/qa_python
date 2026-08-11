@@ -38,23 +38,14 @@ class TestBooksCollector:
         'Детективы'
     ])
     def test_get_books_with_specific_genre(self, collector, genre):
-        collector.add_new_book('Книга')
-        collector.set_book_genre('Книга', genre)
-        collector.add_new_book('Другая книга')
-        collector.set_book_genre('Другая книга', 'Ужасы')
+        collector.books_genre = {'Книга': genre, 'Другая книга': 'Ужасы'}
 
         assert collector.get_books_with_specific_genre(genre) == ['Книга']
 
     def test_get_books_genre(self, collector):
-        collector.add_new_book('Гарри Поттер')
-        collector.set_book_genre('Гарри Поттер', 'Фантастика')
-        collector.add_new_book('Оно')
-        collector.set_book_genre('Оно', 'Ужасы')
+        collector.books_genre = {'Гарри Поттер': 'Фантастика', 'Оно': 'Ужасы'}
 
-        assert collector.get_books_genre() == {
-            'Гарри Поттер': 'Фантастика',
-            'Оно': 'Ужасы'
-        }
+        assert collector.get_books_genre() == {'Гарри Поттер': 'Фантастика', 'Оно': 'Ужасы'}
 
     def test_get_books_for_children(self, collector):
         collector.add_new_book('Гарри Поттер')
